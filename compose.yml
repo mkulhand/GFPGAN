@@ -7,4 +7,4 @@ services:
     ports:
       - 7890:8000
     restart: always
-    command: "python3 /app/main.py"
+    command: "python3 main.py"
