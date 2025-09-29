@@ -9,6 +9,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=2
       - CUDA_VISIBLE_DEVICES=0
+      - GFPGAN_API=${GFPGAN_API}
     deploy:
       resources:
         reservations:
