@@ -38,7 +38,7 @@ class Upscaler:
             "-s",
             "2",
             "-p",
-            "3",
+            "4",
             "--min_face_size",
             "40",
             "--max_face_size",

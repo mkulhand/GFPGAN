@@ -7,14 +7,14 @@ services:
     ports:
       - 7890:8000
     environment:
-      - NVIDIA_VISIBLE_DEVICES=1
+      - NVIDIA_VISIBLE_DEVICES=2
       - CUDA_VISIBLE_DEVICES=0
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ['1']
+              device_ids: ['2']
               capabilities: [gpu]
     restart: always
     command: "python3 main.py"
