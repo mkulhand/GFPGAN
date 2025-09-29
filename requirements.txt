@@ -10,3 +10,6 @@ torch>=1.7
 torchvision
 tqdm
 yapf
+uvicorn
+fastapi
+pydantic

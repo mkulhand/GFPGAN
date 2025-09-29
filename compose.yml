@@ -1,0 +1,10 @@
+services:
+  gfpgan:
+    build:
+      context: .
+    volumes:
+      - /app/GFPGAN:/app
+    ports:
+      - 7890:8000
+    restart: always
+    command: "python3 main.py"
