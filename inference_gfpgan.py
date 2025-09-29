@@ -399,40 +399,98 @@ def process_batch(args_tuple):
 
         print(f"Process {process_id}: Starting with {len(batch_files)} images")
         print(
-            f"Process {process_id}: Mode: {'RESTORE ALL' if restore_all_faces else 'RESTORE NOTHING'}"
+            f"Process {process_id}: Mode: {'RESTORE ALL' if restore_all_faces else 'RESTORE NOTHING (with upscaling)'}"
         )
 
-        # If not restoring, skip GFPGAN initialization
+        # If not restoring faces, use upsampler for all images
         if not restore_all_faces:
-            print(f"Process {process_id}: Copying all frames without restoration")
+            print(
+                f"Process {process_id}: Upscaling all frames without face restoration"
+            )
 
-            # Just copy all images without processing
-            copied_count = 0
+            # Initialize background upsampler for upscaling
+            from basicsr.archs.rrdbnet_arch import RRDBNet
+            from realesrgan import RealESRGANer
+
+            # Initialize RealESRGAN for upscaling
+            model = RRDBNet(
+                num_in_ch=3,
+                num_out_ch=3,
+                num_feat=64,
+                num_block=23,
+                num_grow_ch=32,
+                scale=upscale,
+            )
+            netscale = upscale
+
+            # Try multiple model path locations
+            model_paths = [
+                f"experiments/pretrained_models/RealESRGAN_x{upscale}plus.pth",
+                f"realesrgan/weights/RealESRGAN_x{upscale}plus.pth",
+                f"RealESRGAN_x{upscale}plus.pth",
+            ]
+
+            model_path = None
+            for path in model_paths:
+                if os.path.isfile(path):
+                    model_path = path
+                    break
+
+            # If no local model found, use default x2 upscaler or download URL
+            if model_path is None:
+                if upscale == 2:
+                    model_path = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth"
+                else:
+                    model_path = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth"
+
+            upsampler = RealESRGANer(
+                scale=netscale,
+                model_path=model_path,
+                model=model,
+                tile=400,  # Adjust based on VRAM
+                tile_pad=10,
+                pre_pad=0,
+                half=True,  # Use FP16 for faster processing
+            )
+
+            # Upscale all images
+            upscaled_count = 0
             for img_path in batch_files:
                 try:
+                    clear_gpu_memory()
+
                     img_name = os.path.basename(img_path)
                     basename, ext = os.path.splitext(img_name)
                     input_img = cv2.imread(img_path, cv2.IMREAD_COLOR)
 
                     if input_img is not None:
-                        save_path = os.path.join(output_dir, f"{basename}.png")
-                        cv2.imwrite(save_path, input_img)
-                        copied_count += 1
+                        # Upscale the image
+                        output, _ = upsampler.enhance(input_img, outscale=upscale)
 
-                        if copied_count % 100 == 0:  # Less frequent updates
+                        save_path = os.path.join(output_dir, f"{basename}.png")
+                        cv2.imwrite(save_path, output)
+                        upscaled_count += 1
+
+                        if upscaled_count % 100 == 0:
                             print(
-                                f"Process {process_id}: Copied {copied_count}/{len(batch_files)} images"
+                                f"Process {process_id}: Upscaled {upscaled_count}/{len(batch_files)} images"
                             )
                     else:
                         print(f"Process {process_id}: Failed to load {img_name}")
 
+                    clear_gpu_memory()
+
                 except Exception as e:
-                    print(f"Process {process_id}: Error copying {img_name}: {e}")
+                    print(f"Process {process_id}: Error upscaling {img_name}: {e}")
+                    # Fallback: copy original if upscaling fails
+                    try:
+                        save_path = os.path.join(output_dir, f"{basename}.png")
+                        cv2.imwrite(save_path, input_img)
+                    except:
+                        pass
                     continue
 
-            return (
-                f"Process {process_id}: Copied {copied_count} images (no restoration)"
-            )
+            return f"Process {process_id}: Upscaled {upscaled_count} images (no face restoration)"
 
         # Initialize GFPGAN only if we're restoring all frames
         if version == "1.4":
