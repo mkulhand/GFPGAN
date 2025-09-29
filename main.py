@@ -7,6 +7,7 @@ app = FastAPI()
 
 os.makedirs("tmp", exist_ok=True)
 
+
 class Upscaler:
     tmp: str
     input_path: str
@@ -114,7 +115,7 @@ class UpscaleInput(BaseModel):
 
 @app.post("/upscale")
 def upscale_vid(request: Request, input: UpscaleInput):
-    if request.headers.get("Authorization") != f"Bearer {os.environ.get("GFPGAN_API")}":
+    if request.headers.get("Authorization") != f"Bearer {os.environ.get('GFPGAN_API')}":
         return Response(status_code=401)
 
     video_data = base64.b64decode(input.b64)
