@@ -447,7 +447,7 @@ def process_batch(args_tuple):
                 scale=netscale,
                 model_path=model_path,
                 model=model,
-                tile=400,  # Adjust based on VRAM
+                tile=0,
                 tile_pad=10,
                 pre_pad=0,
                 half=True,  # Use FP16 for faster processing
