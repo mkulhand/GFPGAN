@@ -14,7 +14,7 @@ class Upscaler:
 
     def __init__(self, input_path: str):
         temp_id = uuid.uuid1()
-        self.tmp = f"tmp/{temp_id}"
+        self.tmp = f"/tmp/{temp_id}"
         self.input_path = input_path
         os.makedirs(f"{self.tmp}/frames", exist_ok=True)
         os.makedirs(f"{self.tmp}/restored_frames", exist_ok=True)
