@@ -56,23 +56,27 @@ class Upscaler:
             f"{self.tmp}/restored_frames/frame_%04d.png",
             "-c:v",
             "libvpx-vp9",
+            "-crf",
+            "10",
             "-b:v",
+            "2.5M",
+            "-minrate",
             "2.5M",
             "-maxrate",
             "10M",
-            "-minrate",
+            "-bufsize",
             "5M",
-            "-crf",
-            "10",
             "-cpu-used",
             "2",
             "-row-mt",
             "1",
             "-threads",
             "8",
+            "-an",
+            "-f",
+            "webm",
             f"{self.tmp}/output/output.webm",
         ]
-
         subprocess.run(cmd, check=True)
 
     def webm_to_base64(self) -> str:
