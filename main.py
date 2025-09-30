@@ -55,6 +55,8 @@ class Upscaler:
             f"{self.tmp}/restored_frames/frame_%04d.png",
             "-vf",
             "fps=32",
+            "-pix_fmt",
+            "yuv420p",
             "-c:v",
             "libvpx-vp9",
             "-crf",
