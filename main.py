@@ -51,10 +51,10 @@ class Upscaler:
         cmd = [
             "ffmpeg",
             "-y",
-            "-i",
-            f"{self.tmp}/restored_frames/frame_%04d.png",
             "-framerate",
             str(fps),
+            "-i",
+            f"{self.tmp}/restored_frames/frame_%04d.png",
             "-pix_fmt",
             "yuv420p",
             "-c:v",
