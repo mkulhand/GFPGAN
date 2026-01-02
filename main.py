@@ -133,7 +133,7 @@ def upscale_vid(request: Request, input: UpscaleInput):
         tmp.write(video_data)
         tmp.flush()
         file_path = tmp.name
-        output_base64 = Upscaler(file_path).upscale(fps)
+        output_base64 = Upscaler(file_path).upscale(input.fps)
 
     return Response(content=json.dumps({"base64": output_base64}))
 
