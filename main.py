@@ -47,14 +47,14 @@ class Upscaler:
 
         subprocess.run(cmd, check=True)
 
-    def restore_video(self) -> None:
+    def restore_video(self, fps: int) -> None:
         cmd = [
             "ffmpeg",
             "-y",
             "-i",
             f"{self.tmp}/restored_frames/frame_%04d.png",
             "-vf",
-            "fps=32",
+            f"fps={fps}",
             "-pix_fmt",
             "yuv420p",
             "-c:v",
@@ -106,10 +106,10 @@ class Upscaler:
         except Exception as e:
             print(f"Error removing folder: {e}")
 
-    def upscale(self) -> str:
+    def upscale(self, fps: int) -> str:
         self.split_frames()
         self.run_upscale()
-        self.restore_video()
+        self.restore_video(fps)
         output_base64 = self.webm_to_base64()
         self.clean_tmp()
 
@@ -118,6 +118,7 @@ class Upscaler:
 
 class UpscaleInput(BaseModel):
     b64: str
+    fps: int = 32
 
 
 @app.post("/upscale")
@@ -132,7 +133,7 @@ def upscale_vid(request: Request, input: UpscaleInput):
         tmp.write(video_data)
         tmp.flush()
         file_path = tmp.name
-        output_base64 = Upscaler(file_path).upscale()
+        output_base64 = Upscaler(file_path).upscale(fps)
 
     return Response(content=json.dumps({"base64": output_base64}))
 
